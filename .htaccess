@@ -1,0 +1,12 @@
+# Fehlerseite nicht zu gesprächig
+ServerSignature Off
+
+# Upload-Größe (bplaced erlaubt das meistens per .htaccess)
+php_value upload_max_filesize 8M
+php_value post_max_size       10M
+
+# Nur die gewollten Einstiegs-Dateien ausliefern
+DirectoryIndex index.html index.php
+
+# Verzeichnis-Listing aus
+Options -Indexes

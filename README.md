@@ -1,80 +1,104 @@
-# die Ragebaiters Website
+# die Ragebaiters – Login + Mediathek (bplaced)
 
-Offizielles Repository der Ragebaiters-Website.
+Komplettes PHP/MySQL-Paket für `ragebaiters.de`. Enthält:
 
-Dieses Repository enthält die Website, zugehörige Inhalte sowie projektbezogene Dokumentation des Teams **die Ragebaiters**.
-
----
-
-## Inhalt
-
-In diesem Repository befinden sich unter anderem:
-
-- die Website-Dateien
-- Bilder und grafische Inhalte
-- Texte und teambezogene Darstellungen
-- Dokumentation, Wiki-Struktur und projektrelevante Inhalte
+- Startseite, Team und Impressum wie bisher
+- **login.php** / **register.php** / **logout.php** – Anmeldung mit Einladungscode
+- **dashboard.php** – geschützter Upload-Bereich (Drag & Drop)
+- **mediathek.php** – öffentliche Galerie mit Lightbox
 
 ---
 
-## Hinweis zur Nutzung
+## 1. Datenbank anlegen (bei bplaced)
 
-Dieses Repository dient ausschließlich zur Darstellung und Weiterentwicklung der offiziellen Ragebaiters-Website.
+1. Im bplaced-Panel auf **„MySQL Datenbanken"** gehen
+2. Neue Datenbank erstellen (Name notieren, z.B. `ragebaiters`)
+3. phpMyAdmin öffnen → Datenbank auswählen → Reiter **Importieren**
+4. `schema.sql` hochladen und ausführen
 
-## Kopieren nicht erlaubt
+Dabei wird automatisch der Start-Einladungscode **`TEAM-RAGEBAIT-2026`** angelegt.
+Weitere Codes kannst du per phpMyAdmin in der Tabelle `invites` hinzufügen.
 
-**Das Kopieren, Übernehmen, Wiederverwenden, Veröffentlichen oder Weiterverarbeiten von Inhalten aus diesem Repository ist ausdrücklich nicht gestattet.**
+## 2. Zugangsdaten eintragen
 
-Dazu gehören insbesondere:
+Öffne `includes/config.php` und trage deine bplaced-Daten ein:
 
-- Quellcode
-- Design
-- Texte
-- Bilder
-- Struktur der Website
-- grafische Elemente
-- Inhalte aus dem Wiki oder der Dokumentation
+```php
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'ragebaiters');
+define('DB_USER', 'dein_user');
+define('DB_PASS', 'dein_passwort');
+```
 
-Sofern nicht ausdrücklich schriftlich erlaubt, dürfen keine Inhalte aus diesem Repository ganz oder teilweise übernommen oder anderweitig verwendet werden.
+## 3. Upload
 
----
+Alle Dateien per FTP ins bplaced-Hauptverzeichnis (meist `www/` oder `htdocs/`) hochladen.
+Die Ordnerstruktur muss so bleiben:
 
-## Urheberrecht
+```
+ragebaiters.de/
+├── index.html
+├── team.html
+├── impressum.html
+├── impressum.css
+├── styles.css
+├── script.js
+├── app.css
+├── app.js
+├── login.php
+├── register.php
+├── logout.php
+├── dashboard.php
+├── mediathek.php
+├── upload.php
+├── delete.php
+├── .htaccess
+├── includes/
+│   ├── config.php
+│   ├── db.php
+│   ├── auth.php
+│   ├── header.php
+│   └── footer.php
+├── uploads/
+│   ├── .htaccess       ← wichtig! blockiert PHP in diesem Ordner
+│   └── thumbs/
+└── images/             ← deine bestehenden Logos & Banner
+```
 
-Alle Inhalte in diesem Repository unterliegen dem Urheber- und Nutzungsrecht der jeweiligen Rechteinhaber.
+Wichtig: Die Ordner `uploads/` und `uploads/thumbs/` müssen per FTP auf **Rechte 755** (oder 775) stehen, damit PHP reinschreiben darf.
 
-**Alle Rechte vorbehalten.**
+## 4. Ersten Account anlegen
 
-Wenn du Inhalte verwenden möchtest, ist vorher eine ausdrückliche Genehmigung erforderlich.
+1. `https://ragebaiters.de/register.php` aufrufen
+2. Einladungscode `TEAM-RAGEBAIT-2026` eingeben
+3. Benutzername + E-Mail + Passwort wählen
+4. Du bist direkt eingeloggt und landest im Dashboard
 
----
+Danach diesen ersten Account per phpMyAdmin auf `role = 'admin'` setzen (Tabelle `users`, Zeile bearbeiten).
+Als Admin kannst du alle Bilder löschen, nicht nur deine eigenen.
 
-## Zweck des Repositories
+## 5. Neue Teammitglieder einladen
 
-Dieses Repository wird verwendet für:
+In phpMyAdmin in der Tabelle `invites` eine neue Zeile mit einem frei gewählten
+`code` anlegen, z.B. `BEN-2026`. Den Code dem Teammitglied weitergeben.
+Nach erfolgter Registrierung ist der Code verbraucht.
 
-- die Entwicklung und Pflege der Ragebaiters-Website
-- die interne Zusammenarbeit an Aufbau und Inhalt
-- die Dokumentation von Struktur, Teamdarstellung und Projektinformationen
+## 6. Sicherheit – was ist drin
 
----
+- Passwörter per `password_hash()` (bcrypt)
+- CSRF-Token auf allen Formularen
+- Session-Cookies mit `HttpOnly` + `SameSite=Lax`
+- Uploads:
+  - MIME-Typ-Check (nur JPG/PNG/WebP/GIF)
+  - Max. 8 MB
+  - Dateinamen zufällig generiert
+  - In `/uploads/.htaccess` ist PHP-Ausführung blockiert
+- PDO mit Prepared Statements gegen SQL-Injection
 
-## Mitwirkung
+## 7. Was du leicht anpassen kannst
 
-Mitwirkende arbeiten ausschließlich im Rahmen des Projekts an diesem Repository.
+- **Upload-Größe**: `MAX_FILE_BYTES` in `includes/config.php` + `.htaccess`
+- **Thumbnail-Größe**: `THUMB_SIZE` in `includes/config.php`
+- **Seitentitel**: `SITE_NAME` in `includes/config.php`
 
-Eine Mitwirkung bedeutet **nicht**, dass Inhalte frei verwendet, kopiert oder außerhalb des Projekts weitergegeben werden dürfen.
-
----
-
-## Kontakt
-
-Bei Fragen zu Inhalten, Nutzung oder Berechtigungen:
-
-**E-Mail:** [Ragebaiters@gmx.de](mailto:Ragebaiters@gmx.de)
-
----
-
-## Status
-
-Aktives Projekt der Ragebaiters.
+Viel Spaß –  bei Fragen einfach melden.
