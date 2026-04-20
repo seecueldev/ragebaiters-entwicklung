@@ -1,0 +1,10 @@
+# In /uploads/ darf NIEMALS PHP ausgeführt werden
+<FilesMatch "\.(php|phtml|phar|pl|py|cgi|sh)$">
+    Require all denied
+</FilesMatch>
+
+# Auch kein Parsing als PHP
+php_flag engine off
+
+# Direktes Listing unterbinden
+Options -Indexes
